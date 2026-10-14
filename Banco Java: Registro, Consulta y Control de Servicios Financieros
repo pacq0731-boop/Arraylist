@@ -1,0 +1,400 @@
+//PROGRAMA: BANCO
+//REALIZADO POR: Paula Andrea Castañeda Quintero
+package evaluacion;
+
+// Importamos las herramientas (librerias) que vamos a usar
+import java.util.ArrayList;  // Para guardar la lista de clientes
+import java.util.Locale;     // Define las reglas de formato de un pais o idioma.
+import java.util.Scanner;    // Para leer lo que escribe el usuario
+
+
+public class Evaluacion {
+
+    /*
+     * ---------- MODELO DE DATOS ----------
+     * Los clientes se guardan en un ArrayList<Object[]>.
+     *   - ArrayList = una lista que crece sola cada vez que agregamos algo.
+     *   - Cada elemento de la lista es UN CLIENTE.
+     *   - Cada cliente es un arreglo (Object[]) de 4 casillas.
+     *   - Se usa Object[] porque guarda datos de DIFERENTE tipo
+     *     (texto y numeros) en un mismo arreglo.
+     *
+     * Casillas de cada cliente:
+     *      indice 0 -> Documento   (String)
+     *      indice 1 -> Nombre      (String)
+     *      indice 2 -> Servicio    (String)
+     *      indice 3 -> Monto       (Double)   
+     */
+    
+    static final int DOCUMENTO = 0;  // casilla 0: documento
+    static final int NOMBRE = 1;     // casilla 1: nombre
+    static final int SERVICIO = 2;   // casilla 2: servicio
+    static final int MONTO = 3;      // casilla 3: monto
+
+    // ---------- VARIABLES GLOBALES ----------
+    // Lista donde se guardan todos los clientes (cada cliente es un Object[])
+    static ArrayList<Object[]> clientes = new ArrayList<>();
+
+
+    static Scanner sc = new Scanner(System.in);
+    static Locale co = Locale.forLanguageTag("es-CO"); //Para dar formato de dinero colombiano
+
+    // ---------- METODO PRINCIPAL ----------
+    public static void main(String[] args) {
+        menu();      // Muestra el menu principal
+        sc.close();  // Cierra el Scanner cuando el programa termina
+    }
+
+    // ---------- MENU PRINCIPAL ----------
+    static void menu() {
+
+        int opcion;  // Guarda la opcion que elige el usuario
+
+        // do-while: repite el menu hasta que el usuario elija 0 (salir)
+        do {
+
+            System.out.println("\n===== BANCO =====");
+            System.out.println("1. Registrar cliente");
+            System.out.println("2. Consultar cliente");
+            System.out.println("3. Total usuarios inscritos");
+            System.out.println("4. Monto total por servicio");
+            System.out.println("0. Salir");
+
+            System.out.print("Seleccione una opcion: ");
+            // Lee el texto y lo convierte a numero entero
+            try{
+            opcion = Integer.parseInt(sc.nextLine());
+            } catch (NumberFormatException e) {
+            /* NumberFormatException: es el tipo de error que Java lanza cuando
+             *  el texto NO se puede convertir a numero (ej: "hola", "2a", vacio).
+             *  e: es el nombre de la variable que guarda ese error.
+            */
+            
+            System.out.println("Debe ingresar un numero entre 0 y 4.");
+            return;
+        }
+      
+            // switch: segun la opcion, llama al metodo que corresponde
+            switch (opcion) {
+
+                case 1:
+                    registrar();       // Va a registrar un cliente
+                    break;
+
+                case 2:
+                    consultar();       // Va a consultar clientes
+                    break;
+
+                case 3:
+                    totalUsuarios();   // Muestra cuantos clientes hay
+                    break;
+
+                case 4:
+                    totalServicios();  // Muestra el total por servicio
+                    break;
+
+                case 0:
+                    System.out.println("Programa finalizado.");
+                    break;
+
+                default:
+                    // Si escribe un numero que no es del menu
+                    System.out.println("Opcion no valida.");
+            }
+            
+        
+
+        } while (opcion != 0);  // Se repite mientras la opcion NO sea 0
+    }
+
+    // ---------- REGISTRAR CLIENTE ----------
+    static void registrar() {
+
+        System.out.println("\n--- REGISTRAR CLIENTE ---");
+
+        // 1. DOCUMENTO
+        System.out.print("Documento: ");
+        String documento = sc.nextLine().trim(); // trim() quita espacios sobrantes 
+
+        // isEmpty() es verdadero si no escribio nada (o solo espacios)
+        if (documento.isEmpty()) {
+            System.out.println("El documento no puede estar vacio.");
+            return;  // return: sale del metodo y no sigue registrando
+        }
+
+        // Otro método, Si el documento ya esta registrado, no deja registrarlo otra vez
+        if (clienteExiste(documento)) {
+            System.out.println("El cliente ya tiene un servicio registrado.");
+            return;
+        }
+
+        // 2. NOMBRE
+        System.out.print("Nombre: ");
+        String nombre = sc.nextLine().trim();  // trim() quita espacios sobrantes 
+        if (nombre.isEmpty()) {
+            System.out.println("El nombre no puede estar vacio.");
+            return;
+        }
+
+        // 3. SERVICIO
+        System.out.println("\nServicios disponibles");
+        System.out.println("1. Cuenta de Ahorros");
+        System.out.println("2. Cuenta Corriente");
+        System.out.println("3. Credito");
+        System.out.println("4. Prestamo");
+
+        int opServicio;  // Guarda el numero del servicio elegido
+
+        // try-catch: intenta convertir a numero; si escribe una letra, entra al catch
+        try {
+
+            System.out.print("Seleccione el servicio que desea adquirir: ");
+            opServicio = Integer.parseInt(sc.nextLine().trim());
+
+        } catch (NumberFormatException e) {
+            /* NumberFormatException: es el tipo de error que Java lanza cuando
+             *  el texto NO se puede convertir a numero (ej: "hola", "2a", vacio).
+             *  e: es el nombre de la variable que guarda ese error.
+            */
+            
+            System.out.println("Debe ingresar un numero entre 1 y 4.");
+            return;
+        }
+
+        String servicio;  // Guarda el nombre del servicio
+
+        // Convertimos el numero elegido en el nombre del servicio
+        switch (opServicio) {
+
+            case 1:
+                servicio = "Cuenta de Ahorros";
+                break;
+
+            case 2:
+                servicio = "Cuenta Corriente";
+                break;
+
+            case 3:
+                servicio = "Credito";
+                break;
+
+            case 4:
+                servicio = "Prestamo";
+                break;
+
+            default:
+                // Si escribio un numero fuera de 1 a 4
+                System.out.println("Servicio invalido.");
+                return;
+        }
+
+        // 4. MONTO
+        double monto;  // double: numero que puede tener decimales
+
+        try {
+
+            System.out.print("Monto: ");
+            monto = Double.parseDouble(sc.nextLine().trim());
+
+        } catch (NumberFormatException e) {
+
+            // Se ejecuta si el monto no es un numero
+            System.out.println("Monto invalido.");
+            return;
+        }
+
+        // El monto debe ser positivo
+        if (monto <= 0) {
+            System.out.println("El monto debe ser mayor a cero.");
+            return;
+        }
+
+        // 5. GUARDAR EL CLIENTE
+        // Creamos un arreglo de 4 casillas para este cliente
+        Object[] registro = new Object[4];
+
+        // Guardamos cada dato en su casilla
+        registro[DOCUMENTO] = documento;
+        registro[NOMBRE] = nombre;
+        registro[SERVICIO] = servicio;
+        registro[MONTO] = monto;
+
+        // Agregamos el cliente a la lista
+        clientes.add(registro);
+
+        System.out.println("Cliente registrado correctamente.");
+    }
+
+    // ---------- METODO CLIENTE EXISTE ----------
+    /* Sirve para saber si un documento YA fue registrado.
+     * El metodo es "static boolean": nos devuelve un SI (true) o un NO (false).
+    */
+    
+    //Recibe el documento que escribio el usuario (String documento).
+    static boolean clienteExiste(String documento) {   //
+
+        // Recorremos la lista de clientes, uno por uno
+        for (int i = 0; i < clientes.size(); i++) {
+
+            //get(i): Llama al elemento que está en la posición i.
+            // Dame el cliente que esta en la posicion i
+            Object[] cliente = clientes.get(i);
+
+            // equals(): compara si dos textos (String) son IGUALES.
+            //Comparamos el documento escrito con el documento guardado
+            if (documento.equals(cliente[DOCUMENTO])) {
+                return true;   // Lo encontro: responde SI y termina el metodo
+            }
+        }
+
+        // Si reviso todos los clientes y no encontro ninguno igual:
+        return false;          // responde NO
+    }
+
+    // ---------- CONSULTAR CLIENTES ----------
+    static void consultar() {
+
+        int opcionConsulta;  // Guarda la opcion del submenu
+
+        // Se repite el submenu hasta que elija 3 (regresar)
+        do {
+            System.out.println("\n--- CONSULTAR CLIENTES ---");
+            System.out.println("1. Consulta individual");
+            System.out.println("2. Consultar todos");
+            System.out.println("3. Regresar al menu");
+            System.out.print("Seleccione una opcion: ");
+
+            opcionConsulta = Integer.parseInt(sc.nextLine().trim());
+
+            // OPCION 1: buscar un solo cliente por su documento
+            if (opcionConsulta == 1) {
+
+                // isEmpty() de la lista: true si no hay ningun cliente
+                if (clientes.isEmpty()) {
+                    
+                    System.out.println("No hay clientes registrados.");
+
+                } else {
+                    
+                    System.out.print("Ingrese el documento del cliente: ");
+                    String documento = sc.nextLine().trim();
+
+                    int coincidencias = 0;  // Cuenta cuantos encontro
+
+                    // for: recorre cada cliente de la lista
+                    for (Object[] cliente : clientes) {
+
+                        // Si el documento coincide, muestra sus datos
+                        if (documento.equals(cliente[DOCUMENTO])) {
+
+                            System.out.println("\n--- DATOS DEL CLIENTE ---");
+                            System.out.println("Documento: " + cliente[DOCUMENTO]);
+                            System.out.println("Nombre: " + cliente[NOMBRE]);
+                            System.out.println("Servicio: " + cliente[SERVICIO]);
+                            // printf imprime con formato. Sus partes:
+                            //   co       -> el Locale de Colombia 
+                            //   %,.2f    -> numero con separador de miles (,) y 2 decimales (.2f)
+                            //   %n       -> salto de linea
+                            System.out.printf(co, "Monto: $%,.2f%n",
+                            (Double) cliente[MONTO]);
+
+                            coincidencias++;  // Suma 1 al contador
+                        }
+                    }
+
+                    // Si no encontro ninguno
+                    if (coincidencias == 0) {
+                        System.out.println("Cliente no encontrado.");
+                    }
+                }
+
+            // OPCION 2: mostrar todos los clientes en forma de tabla
+            } else if (opcionConsulta == 2) {
+
+                if (clientes.isEmpty()) {
+                    System.out.println("No hay clientes registrados.");
+
+                } else {
+
+                    // Titulos de la tabla 
+                    //(%-15s = texto alineado a la izquierda en un espacio de 15 caracteres)
+                    System.out.printf("%-15s %-20s %-25s %-15s%n",
+                     "Documento", "Nombre", "Servicio", "Monto");
+
+                    // Imprime una fila por cada cliente
+                    // %-15s = texto alineado a la izquierda en 15 espacios
+                    // $%,.2f = signo $ seguido del monto con miles y 2 decimales
+                    // co = usa el formato colombiano para el monto
+                    for (Object[] cliente : clientes) {
+
+                        System.out.printf(co, "%-15s %-20s %-25s $%,.2f%n",
+                                cliente[DOCUMENTO],
+                                cliente[NOMBRE],
+                                cliente[SERVICIO],
+                                (Double) cliente[MONTO]);
+                    }
+                }
+
+            // Si no es 1, 2 ni 3, la opcion no existe
+            } else if (opcionConsulta != 3) {
+
+                System.out.println("Opcion no valida.");
+            }
+
+        } while (opcionConsulta != 3);  // Repite hasta que elija 3
+    }
+
+    // ---------- TOTAL DE USUARIOS ----------
+    static void totalUsuarios() {
+
+        System.out.println("\n--- TOTAL DE USUARIOS INSCRITOS ---");
+        // size() devuelve la cantidad de clientes guardados
+        System.out.println("Cantidad de clientes registrados: " + clientes.size());
+    }
+
+    // ---------- MONTO TOTAL POR SERVICIO ----------
+    static void totalServicios() {
+
+        // Un acumulador por cada servicio (empiezan en 0)
+        double ahorros = 0;
+        double corriente = 0;
+        double credito = 0;
+        double prestamo = 0;
+
+        // Recorremos todos los clientes
+        for (Object[] cliente : clientes) {
+
+            // Consultamos el servicio y el monto de este cliente
+            String servicio = (String) cliente[SERVICIO];
+            double monto = (Double) cliente[MONTO];
+
+            // Segun el servicio, sumamos el monto al acumulador que corresponde
+            switch (servicio) {
+
+                case "Cuenta de Ahorros":
+                    ahorros += monto;    // ahorros = ahorros + monto
+                    break;
+
+                case "Cuenta Corriente":
+                    corriente += monto;
+                    break;
+
+                case "Credito":
+                    credito += monto;
+                    break;
+
+                case "Prestamo":
+                    prestamo += monto;
+                    break;
+            }
+        }
+
+        // Mostramos los totales
+        System.out.println("\n--- MONTO TOTAL POR SERVICIO ---");
+        System.out.println("Cuenta de Ahorros: $" + ahorros);
+        System.out.println("Cuenta Corriente: $" + corriente);
+        System.out.println("Credito: $" + credito);
+        System.out.println("Prestamo: $" + prestamo);
+    }
+
+}
